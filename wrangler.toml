@@ -1,0 +1,22 @@
+name = "rocklandcensus3-api"
+main = "functions/api/[[path]].ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Set these in the dashboard or via `wrangler secret put`:
+# CENSUS_API_KEY = ""
+# OPENAI_API_KEY = ""
+ALLOWED_ORIGIN = "https://your-pages-domain.pages.dev"
+
+# For standalone Worker deploys (not Pages Functions), you could add routes:
+# routes = [
+#   { pattern = "https://your-worker-domain.workers.dev/api/*", zone_id = "" }
+# ]
+
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "modules"
+dir = "./"
+main = "functions/api/[[path]].ts"
