@@ -14,6 +14,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+# Unset SSLKEYLOGFILE so urllib3/requests don't try to write to it in the uvicorn subprocess (avoids PermissionError on virtual paths)
+os.environ.pop("SSLKEYLOGFILE", None)
+
 import MainAI3 as core
 
 # --- Config ---

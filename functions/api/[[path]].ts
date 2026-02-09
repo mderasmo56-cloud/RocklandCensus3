@@ -191,8 +191,16 @@ function parseZips(zipsParam: string | null): string[] {
   return list;
 }
 
-function corsHeaders(env: Env): HeadersInit {
-  const origin = env.ALLOWED_ORIGIN || "*";
+function corsHeaders(env: Env, request?: Request): HeadersInit {
+  const raw = env.ALLOWED_ORIGIN || "*";
+  const allowed = raw.split(",").map((o) => o.trim()).filter(Boolean);
+  const requestOrigin = request?.headers.get("Origin");
+  const origin =
+    requestOrigin && allowed.length > 0 && allowed.includes(requestOrigin)
+      ? requestOrigin
+      : allowed.length > 0
+        ? allowed[0]
+        : "*";
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
@@ -200,20 +208,21 @@ function corsHeaders(env: Env): HeadersInit {
   };
 }
 
-function cors(response: Response, env: Env) {
+function cors(response: Response, env: Env, request?: Request) {
   const headers = new Headers(response.headers);
-  const extra = corsHeaders(env);
+  const extra = corsHeaders(env, request);
   Object.entries(extra).forEach(([k, v]) => headers.set(k, v));
   return new Response(response.body, { status: response.status, headers });
 }
 
-function json(data: any, env: Env, status = 200) {
+function json(data: any, env: Env, status = 200, request?: Request) {
   return cors(
     new Response(JSON.stringify(data), {
       status,
       headers: { "Content-Type": "application/json" },
     }),
     env,
+    request,
   );
 }
 
@@ -404,7 +413,7 @@ export default {
     const path = url.pathname;
 
     if (request.method === "OPTIONS") {
-      return cors(new Response(null, { status: 204 }), env);
+      return cors(new Response(null, { status: 204 }), env, request);
     }
 
     if (path === "/api/health") {
@@ -413,6 +422,8 @@ export default {
       return json(
         { status: "ok", openai_key: openai, census_key: census, allowed_origin: env.ALLOWED_ORIGIN || "*" },
         env,
+        200,
+        request,
       );
     }
 
@@ -421,14 +432,14 @@ export default {
       try {
         zips = parseZips(url.searchParams.get("zips"));
       } catch (err: any) {
-        if (err instanceof Response) return err;
-        return json({ error: err?.message || "Invalid zips" }, env, 400);
+        if (err instanceof Response) return cors(err, env, request);
+        return json({ error: err?.message || "Invalid zips" }, env, 400, request);
       }
       try {
         const data = await buildFinalDataset(zips, env);
-        return json({ zips, data }, env);
+        return json({ zips, data }, env, 200, request);
       } catch (err: any) {
-        return json({ error: err?.message || "Failed to fetch data" }, env, 500);
+        return json({ error: err?.message || "Failed to fetch data" }, env, 500, request);
       }
     }
 
@@ -437,14 +448,14 @@ export default {
       try {
         body = await request.json();
       } catch {
-        return json({ error: "Invalid JSON body" }, env, 400);
+        return json({ error: "Invalid JSON body" }, env, 400, request);
       }
       let zips: string[];
       try {
         zips = parseZips(Array.isArray(body.zips) ? body.zips.join(",") : body.zips || null);
       } catch (err: any) {
-        if (err instanceof Response) return err;
-        return json({ error: err?.message || "Invalid zips" }, env, 400);
+        if (err instanceof Response) return cors(err, env, request);
+        return json({ error: err?.message || "Invalid zips" }, env, 400, request);
       }
       const temperature = typeof body.temperature === "number" ? body.temperature : DEFAULT_TEMPERATURE;
       const userPrompt = typeof body.user_prompt === "string" ? body.user_prompt : undefined;
@@ -453,12 +464,12 @@ export default {
         const data = await buildFinalDataset(zips, env);
         const prompt = buildPrompt(data, userPrompt);
         const ai_summary = await callOpenAI(prompt, temperature, env);
-        return json({ zips, data, ai_summary }, env);
+        return json({ zips, data, ai_summary }, env, 200, request);
       } catch (err: any) {
-        return json({ error: err?.message || "Failed to generate AI report" }, env, 500);
+        return json({ error: err?.message || "Failed to generate AI report" }, env, 500, request);
       }
     }
 
-    return cors(new Response("Not found", { status: 404 }), env);
+    return cors(new Response("Not found", { status: 404 }), env, request);
   },
 };

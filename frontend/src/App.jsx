@@ -78,13 +78,18 @@ function App() {
     setError("");
     setLoading(true);
     setAiSummary("");
+    const fallback = setTimeout(() => {
+      setLoading(false);
+      setError("Request timed out. The server took too long to respond.");
+    }, 65000);
     try {
       const zips = Array.from(selected);
       const res = await fetchZipData(zips);
       setRows(res.data || []);
     } catch (err) {
-      setError(err.message || "Failed to fetch data");
+      setError(err?.name === "AbortError" ? "Request timed out. The server took too long to respond." : (err.message || "Failed to fetch data"));
     } finally {
+      clearTimeout(fallback);
       setLoading(false);
     }
   };
@@ -92,10 +97,15 @@ function App() {
   const handleAi = async () => {
     setError("");
     setAiLoading(true);
+    const fallback = setTimeout(() => {
+      setAiLoading(false);
+      setError("Request timed out. The server took too long to respond.");
+    }, 125000);
     try {
       if (userPrompt && userPrompt.length > 1000) {
         setError("Custom prompt too long (max 1000 characters).");
         setAiLoading(false);
+        clearTimeout(fallback);
         return;
       }
       const zips = Array.from(selected);
@@ -103,8 +113,9 @@ function App() {
       setRows(res.data || []);
       setAiSummary(res.ai_summary || "");
     } catch (err) {
-      setError(err.message || "Failed to generate AI report");
+      setError(err?.name === "AbortError" ? "Request timed out. The server took too long to respond." : (err.message || "Failed to generate AI report"));
     } finally {
+      clearTimeout(fallback);
       setAiLoading(false);
     }
   };

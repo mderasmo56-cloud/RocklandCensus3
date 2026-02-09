@@ -1,5 +1,22 @@
 # Deployment Guide (FastAPI + Cloudflare Pages)
 
+## Run locally (AI narrative + Fetch data)
+1) **Terminal 1 – Backend** (required for AI narrative and Fetch data):
+   ```powershell
+   # Windows PowerShell – set your keys first
+   $env:CENSUS_API_KEY="your_census_api_key"
+   $env:OPENAI_API_KEY="your_openai_api_key"
+   $env:ALLOWED_ORIGINS="http://localhost:5173"
+   uvicorn app:app --reload --port 8000
+   ```
+   Leave this running. Get keys: [Census](https://api.census.gov/data/key_signup.html), [OpenAI](https://platform.openai.com/api-keys).
+2) **Terminal 2 – Frontend**:
+   ```powershell
+   cd frontend
+   npm run dev
+   ```
+   Open http://localhost:5173. The frontend proxies `/api` to the backend. **AI narrative** may take 30–90 seconds (Census + OpenAI).
+
 ## Backend (FastAPI)
 1) Set env vars:
    - `CENSUS_API_KEY`
