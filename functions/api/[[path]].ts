@@ -192,19 +192,24 @@ function parseZips(zipsParam: string | null): string[] {
 }
 
 function corsHeaders(env: Env, request?: Request): HeadersInit {
-  const raw = env.ALLOWED_ORIGIN || "*";
-  const allowed = raw.split(",").map((o) => o.trim()).filter(Boolean);
-  const requestOrigin = request?.headers.get("Origin");
-  const origin =
-    requestOrigin && allowed.length > 0 && allowed.includes(requestOrigin)
-      ? requestOrigin
-      : allowed.length > 0
-        ? allowed[0]
-        : "*";
+  const raw = (env.ALLOWED_ORIGIN || "").trim();
+  const allowed = raw ? raw.split(",").map((o) => o.trim()).filter(Boolean) : [];
+  const requestOrigin = request?.headers.get("Origin")?.trim() || null;
+  let origin: string;
+  if (requestOrigin && allowed.length > 0 && allowed.includes(requestOrigin)) {
+    origin = requestOrigin;
+  } else if (allowed.length > 0) {
+    origin = allowed[0];
+  } else if (requestOrigin) {
+    origin = requestOrigin;
+  } else {
+    origin = "*";
+  }
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
   };
 }
 
