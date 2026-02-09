@@ -59,6 +59,12 @@
 ## CORS checklist
 - Worker/Functions `ALLOWED_ORIGIN` must include your Pages domain (e.g. `https://your-site.pages.dev`) and `http://localhost:5173` for local dev if needed.
 
+## Production (Cloudflare Pages + Worker API)
+- The frontend on Pages uses the Worker API automatically when the site is on `*.pages.dev` or `rocklandcensusinsights.com` (no env var needed).
+- **Worker** (rocklandcensus): In Variables and Secrets set **ALLOWED_ORIGIN** to a comma-separated list, e.g. `https://rocklandcensusinsights.com,https://rocklandcensus3.pages.dev,http://localhost:5173`.
+- **Worker** must have **CENSUS_API_KEY** and **OPENAI_API_KEY** set.
+- Redeploy the Worker after changing env vars.
+
 ## Smoke tests
 - `GET {BASE}/api/health` returns `status: "ok"` and shows keys present.
 - `GET {BASE}/api/zip-data?zips=10901,10952` returns data records.

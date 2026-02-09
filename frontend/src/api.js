@@ -1,4 +1,15 @@
-export const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const ENV_API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const WORKER_API_BASE = "https://rocklandcensus.mderasmo56.workers.dev";
+function getApiBase() {
+  if (ENV_API_BASE) return ENV_API_BASE;
+  if (typeof window !== "undefined" && window.location?.origin) {
+    const o = window.location.origin;
+    if (o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")) return WORKER_API_BASE;
+  }
+  return "";
+}
+export const API_BASE = ENV_API_BASE;
+export { getApiBase };
 
 async function handleResponse(res) {
   if (!res.ok) {
@@ -17,7 +28,7 @@ async function handleResponse(res) {
 export async function fetchZipData(zips) {
   const list = zips && zips.length > 0 ? zips : [];
   const qs = encodeURIComponent(list.join(","));
-  const prefix = API_BASE ? API_BASE : "";
+  const prefix = getApiBase();
   const url = `${prefix}/api/zip-data${qs ? `?zips=${qs}` : ""}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000);
@@ -33,7 +44,7 @@ export async function fetchZipData(zips) {
 }
 
 export async function fetchAiReport(zips, userPrompt) {
-  const prefix = API_BASE ? API_BASE : "";
+  const prefix = getApiBase();
   const url = `${prefix}/api/ai-report`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000);

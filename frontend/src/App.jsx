@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { API_BASE, fetchAiReport, fetchZipData } from "./api";
+import { getApiBase, fetchAiReport, fetchZipData } from "./api";
 
 const ROCKLAND_ZIPS = {
   "10901": "Airmont, Suffern",
@@ -124,7 +124,7 @@ function App() {
     <div>
       <h1>Rockland Census Explorer</h1>
       <p className="status">
-        Backend: <strong>{API_BASE}</strong> | Selected ZIPs:{" "}
+        Backend: <strong>{getApiBase() || "(same origin)"}</strong> | Selected ZIPs:{" "}
         {selected.size} / {zipOptions.length}
       </p>
 
