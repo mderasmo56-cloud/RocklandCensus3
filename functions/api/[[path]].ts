@@ -418,19 +418,25 @@ export default {
       const url = new URL(request.url);
       const path = url.pathname;
 
+      // Log for debugging (will appear in Cloudflare dashboard)
+      console.log(`[Pages Function] ${request.method} ${path}`);
+
       if (request.method === "OPTIONS") {
         return cors(new Response(null, { status: 204 }), env, request);
       }
 
       if (path === "/api/health") {
+        console.log(`[Pages Function] Handling /api/health`);
         const openai = !!env.OPENAI_API_KEY;
         const census = !!env.CENSUS_API_KEY;
-        return json(
+        const response = json(
           { status: "ok", openai_key: openai, census_key: census, allowed_origin: env.ALLOWED_ORIGIN || "*" },
           env,
           200,
           request,
         );
+        console.log(`[Pages Function] Returning health response`);
+        return response;
       }
 
       if (path === "/api/zip-data" && request.method === "GET") {
@@ -476,10 +482,12 @@ export default {
         }
       }
 
+      console.log(`[Pages Function] No route matched for ${path}, returning 404`);
       return cors(new Response("Not found", { status: 404 }), env, request);
     } catch (err: any) {
+      console.error(`[Pages Function] Error:`, err);
       return json(
-        { error: err?.message || "Internal server error" },
+        { error: err?.message || "Internal server error", stack: err?.stack },
         env,
         500,
         request,
