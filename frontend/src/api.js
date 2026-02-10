@@ -59,11 +59,18 @@ export async function fetchAiReport(zips, userPrompt) {
       body: JSON.stringify({ zips, user_prompt: userPrompt }),
       signal: controller.signal,
     });
+    const corsHeader = res.headers.get("Access-Control-Allow-Origin");
+    console.log(`[API] POST ${url} - Status: ${res.status}, CORS: ${corsHeader || "MISSING"}`);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`[API] Error response: ${text.substring(0, 200)}`);
+    }
     const data = await handleResponse(res);
     clearTimeout(timeoutId);
     return data;
-  } catch (err) {
+  } catch (err: any) {
     clearTimeout(timeoutId);
+    console.error(`[API] Fetch error for ${url}:`, err);
     const enhanced = new Error(err?.message || "Failed to fetch");
     enhanced.name = err?.name || "NetworkError";
     enhanced.cause = err;
@@ -76,12 +83,17 @@ export async function checkWorkerHealth() {
   const base = getApiBase() || "https://rocklandcensus.mderasmo56.workers.dev";
   try {
     const res = await fetch(`${base}/api/health`, { signal: AbortSignal.timeout(5000) });
+    const corsHeader = res.headers.get("Access-Control-Allow-Origin");
+    console.log(`[API] Health check - Status: ${res.status}, CORS: ${corsHeader || "MISSING"}`);
     if (res.ok) {
       const data = await res.json();
       return { ok: true, data };
     }
-    return { ok: false, status: res.status, statusText: res.statusText };
-  } catch (err) {
+    const text = await res.text();
+    console.error(`[API] Health check failed: ${res.status} ${res.statusText} - ${text.substring(0, 100)}`);
+    return { ok: false, status: res.status, statusText: res.statusText, body: text };
+  } catch (err: any) {
+    console.error(`[API] Health check error:`, err);
     return { ok: false, error: err?.message || "Failed to reach Worker" };
   }
 }
