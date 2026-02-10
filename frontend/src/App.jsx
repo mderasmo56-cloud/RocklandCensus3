@@ -102,7 +102,7 @@ function App() {
       const zips = Array.from(selected);
       const res = await fetchZipData(zips);
       setRows(res.data || []);
-    } catch (err: any) {
+    } catch (err) {
       let msg = err?.message || "Failed to fetch data";
       if (err?.name === "AbortError") {
         msg = "Request timed out. The server took too long to respond.";
@@ -134,7 +134,7 @@ function App() {
       const res = await fetchAiReport(zips, userPrompt.trim());
       setRows(res.data || []);
       setAiSummary(res.ai_summary || "");
-    } catch (err: any) {
+    } catch (err) {
       let msg = err?.message || "Failed to generate AI report";
       if (err?.name === "AbortError") {
         msg = "Request timed out. The server took too long to respond.";

@@ -68,7 +68,7 @@ export async function fetchAiReport(zips, userPrompt) {
     const data = await handleResponse(res);
     clearTimeout(timeoutId);
     return data;
-  } catch (err: any) {
+  } catch (err) {
     clearTimeout(timeoutId);
     console.error(`[API] Fetch error for ${url}:`, err);
     const enhanced = new Error(err?.message || "Failed to fetch");
