@@ -425,20 +425,25 @@ async function callOpenAI(prompt: string, temperature: number, env: Env) {
 
 // Pages Functions API - context contains request, env, functionPath, etc.
 export const onRequest: PagesFunction<Env> = async (context) => {
-  const { request, env } = context;
+  const { request, env, functionPath } = context;
   try {
     const url = new URL(request.url);
-    const path = url.pathname;
+    // Use functionPath for routing (it's the path relative to the function)
+    // For /api/health, functionPath will be "/health" (without /api prefix)
+    // For /api/ai-report, functionPath will be "/ai-report"
+    const path = functionPath || url.pathname;
 
     // Log for debugging (will appear in Cloudflare dashboard)
     // This log proves the function is being invoked
-    console.log(`[Pages Function] INVOKED - ${request.method} ${path} from ${request.url}`);
+    console.log(`[Pages Function] INVOKED - ${request.method} pathname="${url.pathname}" functionPath="${functionPath}" fullURL="${request.url}"`);
 
     if (request.method === "OPTIONS") {
       return cors(new Response(null, { status: 204 }), env, request);
     }
 
-    if (path === "/api/health") {
+    // functionPath will be "/health", "/zip-data", "/ai-report" etc (without /api prefix)
+    // because the function is at functions/api/[[path]].ts
+    if (path === "/health" || url.pathname === "/api/health") {
       console.log(`[Pages Function] Handling /api/health`);
       const openai = !!env.OPENAI_API_KEY;
       const census = !!env.CENSUS_API_KEY;
@@ -452,7 +457,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return response;
     }
 
-    if (path === "/api/zip-data" && request.method === "GET") {
+    if ((path === "/zip-data" || url.pathname === "/api/zip-data") && request.method === "GET") {
       let zips: string[];
       try {
         zips = parseZips(url.searchParams.get("zips"));
@@ -468,7 +473,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     }
 
-    if (path === "/api/ai-report" && request.method === "POST") {
+    if ((path === "/ai-report" || url.pathname === "/api/ai-report") && request.method === "POST") {
       let body: any = {};
       try {
         body = await request.json();
