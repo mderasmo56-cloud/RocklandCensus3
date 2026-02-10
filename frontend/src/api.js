@@ -92,7 +92,7 @@ export async function checkWorkerHealth() {
     const text = await res.text();
     console.error(`[API] Health check failed: ${res.status} ${res.statusText} - ${text.substring(0, 100)}`);
     return { ok: false, status: res.status, statusText: res.statusText, body: text };
-  } catch (err: any) {
+  } catch (err) {
     console.error(`[API] Health check error:`, err);
     return { ok: false, error: err?.message || "Failed to reach Worker" };
   }
