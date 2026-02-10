@@ -10,6 +10,17 @@ export interface Env {
   ALLOWED_ORIGIN?: string;
 }
 
+// PagesFunction type - if not available from @cloudflare/workers-types, define inline
+type PagesFunction<Env = any> = (context: {
+  request: Request;
+  env: Env;
+  functionPath: string;
+  waitUntil: (promise: Promise<any>) => void;
+  passThroughOnException: () => void;
+  next: (input?: Request | string, init?: RequestInit) => Promise<Response>;
+  params: Record<string, string>;
+}) => Promise<Response>;
+
 type RecordMap = Record<string, any>;
 
 const BASE_URL = "https://api.census.gov/data/2021/acs/acs5";
@@ -413,7 +424,7 @@ async function callOpenAI(prompt: string, temperature: number, env: Env) {
 }
 
 // Pages Functions API - context contains request, env, functionPath, etc.
-export async function onRequest(context: { request: Request; env: Env; functionPath: string }): Promise<Response> {
+export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   try {
     const url = new URL(request.url);
