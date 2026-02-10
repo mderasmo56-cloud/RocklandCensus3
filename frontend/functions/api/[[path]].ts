@@ -431,7 +431,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const path = url.pathname;
 
     // Log for debugging (will appear in Cloudflare dashboard)
-    console.log(`[Pages Function] ${request.method} ${path}`);
+    // This log proves the function is being invoked
+    console.log(`[Pages Function] INVOKED - ${request.method} ${path} from ${request.url}`);
 
     if (request.method === "OPTIONS") {
       return cors(new Response(null, { status: 204 }), env, request);
