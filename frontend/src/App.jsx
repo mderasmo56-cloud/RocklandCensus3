@@ -165,6 +165,7 @@ function App() {
         Backend: <strong>{getApiBase() || "(same origin)"}</strong> | Selected ZIPs:{" "}
         {selected.size} / {zipOptions.length}
         {workerStatus && ` | ${workerStatus}`}
+        {import.meta.env.VITE_API_BASE_URL && ` | ENV: ${import.meta.env.VITE_API_BASE_URL}`}
       </p>
 
       <div className="card section">
