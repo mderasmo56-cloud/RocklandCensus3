@@ -49,18 +49,18 @@ function App() {
   const [workerStatus, setWorkerStatus] = useState(null);
 
   useEffect(() => {
-    const base = getApiBase();
-    if (base && base.includes("workers.dev")) {
-      checkWorkerHealth().then((result) => {
-        if (result.ok) {
-          setWorkerStatus(`Worker OK (${result.data?.openai_key ? "OpenAI" : "no OpenAI"}, ${result.data?.census_key ? "Census" : "no Census"})`);
-        } else {
-          setWorkerStatus(`Worker unreachable: ${result.error || `${result.status} ${result.statusText}`}`);
-        }
-      }).catch(() => {
-        setWorkerStatus("Worker check failed");
-      });
-    }
+    // Check health for both Pages Functions and Worker (if Worker URL is explicitly set)
+    checkWorkerHealth().then((result) => {
+      if (result.ok) {
+        const base = getApiBase();
+        const apiType = base && base.includes("workers.dev") ? "Worker" : "Pages Functions";
+        setWorkerStatus(`${apiType} OK (${result.data?.openai_key ? "OpenAI" : "no OpenAI"}, ${result.data?.census_key ? "Census" : "no Census"})`);
+      } else {
+        setWorkerStatus(`API unreachable: ${result.error || `${result.status} ${result.statusText}`}`);
+      }
+    }).catch(() => {
+      setWorkerStatus("API health check failed");
+    });
   }, []);
 
   const zipOptions = useMemo(
