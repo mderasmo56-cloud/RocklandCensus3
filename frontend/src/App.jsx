@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { getApiBase, fetchAiReport, fetchZipData } from "./api";
+import { useMemo, useState, useEffect } from "react";
+import { getApiBase, fetchAiReport, fetchZipData, checkWorkerHealth } from "./api";
 
 const ROCKLAND_ZIPS = {
   "10901": "Airmont, Suffern",
@@ -46,6 +46,22 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState("");
+  const [workerStatus, setWorkerStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const base = getApiBase();
+    if (base && base.includes("workers.dev")) {
+      checkWorkerHealth().then((result) => {
+        if (result.ok) {
+          setWorkerStatus(`Worker OK (${result.data?.openai_key ? "OpenAI" : "no OpenAI"}, ${result.data?.census_key ? "Census" : "no Census"})`);
+        } else {
+          setWorkerStatus(`Worker unreachable: ${result.error || `${result.status} ${result.statusText}`}`);
+        }
+      }).catch(() => {
+        setWorkerStatus("Worker check failed");
+      });
+    }
+  }, []);
 
   const zipOptions = useMemo(
     () =>
@@ -86,8 +102,14 @@ function App() {
       const zips = Array.from(selected);
       const res = await fetchZipData(zips);
       setRows(res.data || []);
-    } catch (err) {
-      setError(err?.name === "AbortError" ? "Request timed out. The server took too long to respond." : (err.message || "Failed to fetch data"));
+    } catch (err: any) {
+      let msg = err?.message || "Failed to fetch data";
+      if (err?.name === "AbortError") {
+        msg = "Request timed out. The server took too long to respond.";
+      } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || err?.name === "TypeError") {
+        msg = `Network error: Cannot reach ${err?.url || getApiBase() || "the API"}. Check if the Worker is deployed and CORS is configured.`;
+      }
+      setError(msg);
     } finally {
       clearTimeout(fallback);
       setLoading(false);
@@ -112,8 +134,14 @@ function App() {
       const res = await fetchAiReport(zips, userPrompt.trim());
       setRows(res.data || []);
       setAiSummary(res.ai_summary || "");
-    } catch (err) {
-      setError(err?.name === "AbortError" ? "Request timed out. The server took too long to respond." : (err.message || "Failed to generate AI report"));
+    } catch (err: any) {
+      let msg = err?.message || "Failed to generate AI report";
+      if (err?.name === "AbortError") {
+        msg = "Request timed out. The server took too long to respond.";
+      } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || err?.name === "TypeError") {
+        msg = `Network error: Cannot reach ${err?.url || getApiBase() || "the API"}. Check if the Worker is deployed and CORS is configured.`;
+      }
+      setError(msg);
     } finally {
       clearTimeout(fallback);
       setAiLoading(false);
@@ -126,6 +154,7 @@ function App() {
       <p className="status">
         Backend: <strong>{getApiBase() || "(same origin)"}</strong> | Selected ZIPs:{" "}
         {selected.size} / {zipOptions.length}
+        {workerStatus && ` | ${workerStatus}`}
       </p>
 
       <div className="card section">

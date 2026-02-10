@@ -39,7 +39,11 @@ export async function fetchZipData(zips) {
     return data;
   } catch (err) {
     clearTimeout(timeoutId);
-    throw err;
+    const enhanced = new Error(err?.message || "Failed to fetch");
+    enhanced.name = err?.name || "NetworkError";
+    enhanced.cause = err;
+    enhanced.url = url;
+    throw enhanced;
   }
 }
 
@@ -60,6 +64,24 @@ export async function fetchAiReport(zips, userPrompt) {
     return data;
   } catch (err) {
     clearTimeout(timeoutId);
-    throw err;
+    const enhanced = new Error(err?.message || "Failed to fetch");
+    enhanced.name = err?.name || "NetworkError";
+    enhanced.cause = err;
+    enhanced.url = url;
+    throw enhanced;
+  }
+}
+
+export async function checkWorkerHealth() {
+  const base = getApiBase() || "https://rocklandcensus.mderasmo56.workers.dev";
+  try {
+    const res = await fetch(`${base}/api/health`, { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, data };
+    }
+    return { ok: false, status: res.status, statusText: res.statusText };
+  } catch (err) {
+    return { ok: false, error: err?.message || "Failed to reach Worker" };
   }
 }
