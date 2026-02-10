@@ -46,7 +46,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState("");
-  const [workerStatus, setWorkerStatus] = useState<string | null>(null);
+  const [workerStatus, setWorkerStatus] = useState(null);
 
   useEffect(() => {
     const base = getApiBase();
