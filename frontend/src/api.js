@@ -1,16 +1,27 @@
 const ENV_API_BASE = import.meta.env.VITE_API_BASE_URL || "";
-const WORKER_API_BASE = "https://rocklandcensus.mderasmo56.workers.dev";
 function getApiBase() {
-  if (ENV_API_BASE) return ENV_API_BASE;
+  if (ENV_API_BASE) {
+    console.log(`[API] getApiBase() - Using ENV_API_BASE="${ENV_API_BASE}"`);
+    return ENV_API_BASE;
+  }
   // On Pages, use same-origin (Pages Functions handle /api/* automatically)
   // Only use Worker URL if explicitly set via env var
   if (typeof window !== "undefined" && window.location?.origin) {
     const o = window.location.origin;
+    console.log(`[API] getApiBase() - window.location.origin="${o}"`);
     // For localhost, return empty (uses proxy to local backend)
-    if (o.includes("localhost")) return "";
+    if (o.includes("localhost")) {
+      console.log(`[API] getApiBase() - Detected localhost, returning ""`);
+      return "";
+    }
     // For Pages, use same-origin (Pages Functions)
-    if (o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")) return "";
+    if (o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")) {
+      console.log(`[API] getApiBase() - Detected Pages domain, returning ""`);
+      return "";
+    }
+    console.log(`[API] getApiBase() - Unknown origin, returning ""`);
   }
+  console.log(`[API] getApiBase() - No window, returning ""`);
   return "";
 }
 export const API_BASE = ENV_API_BASE;
