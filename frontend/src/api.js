@@ -2,9 +2,14 @@ const ENV_API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 const WORKER_API_BASE = "https://rocklandcensus.mderasmo56.workers.dev";
 function getApiBase() {
   if (ENV_API_BASE) return ENV_API_BASE;
+  // On Pages, use same-origin (Pages Functions handle /api/* automatically)
+  // Only use Worker URL if explicitly set via env var
   if (typeof window !== "undefined" && window.location?.origin) {
     const o = window.location.origin;
-    if (o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")) return WORKER_API_BASE;
+    // For localhost, return empty (uses proxy to local backend)
+    if (o.includes("localhost")) return "";
+    // For Pages, use same-origin (Pages Functions)
+    if (o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")) return "";
   }
   return "";
 }
