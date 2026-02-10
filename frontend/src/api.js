@@ -93,10 +93,7 @@ export async function fetchAiReport(zips, userPrompt) {
     });
     const corsHeader = res.headers.get("Access-Control-Allow-Origin");
     console.log(`[API] POST ${url} - Status: ${res.status}, CORS: ${corsHeader || "MISSING"}`);
-    if (!res.ok) {
-      const text = await res.text();
-      console.error(`[API] Error response: ${text.substring(0, 200)}`);
-    }
+    // handleResponse will read the body, so don't read it here
     const data = await handleResponse(res);
     clearTimeout(timeoutId);
     return data;
@@ -123,8 +120,15 @@ export async function checkWorkerHealth() {
     const corsHeader = res.headers.get("Access-Control-Allow-Origin");
     console.log(`[API] Health check - Status: ${res.status}, CORS: ${corsHeader || "MISSING"}`);
     if (res.ok) {
-      const data = await res.json();
-      return { ok: true, data };
+      try {
+        const data = await res.json();
+        return { ok: true, data };
+      } catch (err) {
+        // If response is HTML instead of JSON, the function isn't working
+        const text = await res.clone().text();
+        console.error(`[API] Health check returned non-JSON: ${text.substring(0, 200)}`);
+        return { ok: false, status: res.status, error: "Response is not JSON (Pages Function may not be deployed)" };
+      }
     }
     const text = await res.text();
     console.error(`[API] Health check failed: ${res.status} ${res.statusText} - ${text.substring(0, 100)}`);
