@@ -86,9 +86,11 @@ export async function fetchAiReport(zips, userPrompt) {
 }
 
 export async function checkWorkerHealth() {
-  const base = getApiBase() || "https://rocklandcensus.mderasmo56.workers.dev";
+  const base = getApiBase();
+  const url = `${base}/api/health`;
+  console.log(`[API] checkWorkerHealth - getApiBase()="${base}", final URL="${url}"`);
   try {
-    const res = await fetch(`${base}/api/health`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     const corsHeader = res.headers.get("Access-Control-Allow-Origin");
     console.log(`[API] Health check - Status: ${res.status}, CORS: ${corsHeader || "MISSING"}`);
     if (res.ok) {
