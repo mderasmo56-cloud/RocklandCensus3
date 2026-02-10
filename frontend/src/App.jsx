@@ -107,7 +107,12 @@ function App() {
       if (err?.name === "AbortError") {
         msg = "Request timed out. The server took too long to respond.";
       } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || err?.name === "TypeError") {
-        msg = `Network error: Cannot reach ${err?.url || getApiBase() || "the API"}. Check if the Worker is deployed and CORS is configured.`;
+        const attemptedUrl = err?.url || getApiBase() || "the API";
+        if (attemptedUrl && attemptedUrl.includes("workers.dev")) {
+          msg = `Network error: Cannot reach Worker API at ${attemptedUrl}. The Worker may not be deployed. Using Pages Functions instead - ensure CENSUS_API_KEY and OPENAI_API_KEY are set in Pages environment variables.`;
+        } else {
+          msg = `Network error: Cannot reach ${attemptedUrl || "the API"}. Check Pages Functions deployment and environment variables (CENSUS_API_KEY, OPENAI_API_KEY).`;
+        }
       }
       setError(msg);
     } finally {
@@ -139,7 +144,12 @@ function App() {
       if (err?.name === "AbortError") {
         msg = "Request timed out. The server took too long to respond.";
       } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || err?.name === "TypeError") {
-        msg = `Network error: Cannot reach ${err?.url || getApiBase() || "the API"}. Check if the Worker is deployed and CORS is configured.`;
+        const attemptedUrl = err?.url || getApiBase() || "the API";
+        if (attemptedUrl.includes("workers.dev")) {
+          msg = `Network error: Cannot reach Worker API at ${attemptedUrl}. The Worker may not be deployed. Using Pages Functions instead - ensure CENSUS_API_KEY and OPENAI_API_KEY are set in Pages environment variables.`;
+        } else {
+          msg = `Network error: Cannot reach ${attemptedUrl}. Check Pages Functions deployment and environment variables.`;
+        }
       }
       setError(msg);
     } finally {

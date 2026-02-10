@@ -55,6 +55,7 @@ export async function fetchZipData(zips) {
 export async function fetchAiReport(zips, userPrompt) {
   const prefix = getApiBase();
   const url = `${prefix}/api/ai-report`;
+  console.log(`[API] fetchAiReport - getApiBase()="${prefix}", origin="${typeof window !== "undefined" ? window.location.origin : "N/A"}", final URL="${url}"`);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000);
   try {
