@@ -13,10 +13,5 @@ ALLOWED_ORIGIN = "https://your-pages-domain.pages.dev"
 #   { pattern = "https://your-worker-domain.workers.dev/api/*", zone_id = "" }
 # ]
 
-[build]
-command = "npm run build"
-
-[build.upload]
-format = "modules"
-dir = "./"
-main = "functions/api/[[path]].ts"
+# For Pages Functions: Cloudflare auto-discovers and builds functions/api/[[path]].ts
+# For standalone Worker: Wrangler compiles TypeScript directly, no build step needed
