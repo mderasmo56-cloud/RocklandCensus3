@@ -1,6 +1,15 @@
 const ENV_API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/6bf69850-e6fc-4219-a45b-d6a404320a20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:module_init',message:'Module loaded',data:{ENV_API_BASE,rawEnv:import.meta.env.VITE_API_BASE_URL,origin:typeof window !== "undefined" ? window.location?.origin : "N/A"},timestamp:Date.now()})}).catch(()=>{});
+// #endregion
 function getApiBase() {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/6bf69850-e6fc-4219-a45b-d6a404320a20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:getApiBase',message:'getApiBase called',data:{ENV_API_BASE,hasWindow:typeof window !== "undefined",origin:typeof window !== "undefined" ? window.location?.origin : "N/A"},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   if (ENV_API_BASE) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/6bf69850-e6fc-4219-a45b-d6a404320a20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:getApiBase',message:'Returning ENV_API_BASE',data:{ENV_API_BASE},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     console.log(`[API] getApiBase() - Using ENV_API_BASE="${ENV_API_BASE}"`);
     return ENV_API_BASE;
   }
@@ -8,6 +17,9 @@ function getApiBase() {
   // Only use Worker URL if explicitly set via env var
   if (typeof window !== "undefined" && window.location?.origin) {
     const o = window.location.origin;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/6bf69850-e6fc-4219-a45b-d6a404320a20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:getApiBase',message:'Checking origin',data:{origin:o,isLocalhost:o.includes("localhost"),isPages:o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     console.log(`[API] getApiBase() - window.location.origin="${o}"`);
     // For localhost, return empty (uses proxy to local backend)
     if (o.includes("localhost")) {
@@ -16,6 +28,9 @@ function getApiBase() {
     }
     // For Pages, use same-origin (Pages Functions)
     if (o.includes("pages.dev") || o.includes("rocklandcensusinsights.com")) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6bf69850-e6fc-4219-a45b-d6a404320a20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:getApiBase',message:'Detected Pages domain, returning empty string',data:{origin:o},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       console.log(`[API] getApiBase() - Detected Pages domain, returning ""`);
       return "";
     }
@@ -99,6 +114,9 @@ export async function fetchAiReport(zips, userPrompt) {
 export async function checkWorkerHealth() {
   const base = getApiBase();
   const url = `${base}/api/health`;
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/6bf69850-e6fc-4219-a45b-d6a404320a20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:checkWorkerHealth',message:'About to fetch health endpoint',data:{base,url,origin:typeof window !== "undefined" ? window.location?.origin : "N/A"},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   console.log(`[API] checkWorkerHealth - getApiBase()="${base}", final URL="${url}"`);
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
